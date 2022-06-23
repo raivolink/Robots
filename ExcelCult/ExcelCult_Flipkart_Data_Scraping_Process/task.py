@@ -2,14 +2,17 @@
    Challenge #6 from excelcult.com Flipkart Data Scraping
    Process. Goal is to open Flipkart page and search for product.
    From first page of results for all products model, colour and price
-   needs to be saved to csv file. Result csv file will be sent to
-   email
+   needs to be saved to csv file.
 """
 from RPA.Browser.Playwright import Playwright
 from RPA.Tables import Tables
 import time
+import logging
 
+logging.basicConfig(filename='output/app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s',level=logging.INFO)
+logger = logging.getLogger('robo_logger')
 browser_lib = Playwright()
+browser_lib.set_browser_timeout(25000)
 table_lib = Tables()
 result_table = table_lib.create_table()
 result_table._add_column('Model')
@@ -22,6 +25,7 @@ def create_browser():
 
 def search_for_product(product_name):
     browser_lib.new_page(f'https://www.flipkart.com/search?q={product_name}')
+
 def get_results_from_page():
     """Reads results from current page, extracts colour,
        model and price. Adds found information to resutls
@@ -34,15 +38,19 @@ def get_results_from_page():
         price = browser_lib.get_property(element + '>> ._30jeq3',property='textContent')
         table_lib.add_table_row(result_table,{'Model':model,'Colour':colour,'Price':price})
         #print(f"Colour: {colour}, Model: {model}, Price: {price}")
+
 def save_result_to_csv():
     table_lib.write_table_to_csv(result_table,'output/search_results.csv',encoding="utf-8")
-def minimal_task():
+
+def robot_task():
+    logger.info('Starting robot')
     create_browser()
     search_for_product('pendrive')
     get_results_from_page()
     save_result_to_csv()
+    logger.info('Robot completed')
     print("Done.")
 
 
 if __name__ == "__main__":
-    minimal_task()
+    robot_task()
